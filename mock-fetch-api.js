@@ -21,6 +21,7 @@ PERFORMANCE OF THIS SOFTWARE.
 require('es6-promise').polyfill();
 require('isomorphic-fetch');
 var extend = require('object-extend');
+var forEach = require('lodash.foreach');
 
 var conditions = [];
 var failNextCall = false;
@@ -95,10 +96,39 @@ global.fetch = function(uri, options) {
       }));
 
    });
-}
+};
+
+
+var handlerRequest = function(request, fnWhen) {
+   var headers = (request.headers) ? request.headers : {};
+   var method = (request.method) ? request.method : 'GET';
+   var uri = request.url;
+   var when = fnWhen(method, uri);
+   
+   forEach(headers, function(value, key) {         
+      if (key !== 'otherwiseRespondWith') {
+         when.withExpectedHeader(key, value);
+      } else {
+         when.otherwiseRespondWith(value.status, value.statusText);
+      }
+   });   
+
+   return when;
+};
 
 
 module.exports = {
+
+   whenAll: function(all = []) {
+
+      var parent = this;
+      var requests = all;
+      
+      requests.forEach(function(req) {
+         handlerRequest(req, parent.when)
+            .respondWith(req.status, req.statusText);
+      });
+   },
 
    when: function(method, uri) {
 
