@@ -18,7 +18,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
 jest.autoMockOff();
 
-describe('MockFetch test', () =>  {
+describe('MockFetch test using function when()', () =>  {
 
    pit("can set a condition which is returned by fetch", () => {
       var MockFetch  = require('../mock-fetch-api.js');
@@ -188,5 +188,113 @@ describe('MockFetch test', () =>  {
          expect(true).toBe(true);
       });
    });
+
+});
+
+
+
+describe('MockFetch test using function whenAll()', () =>  {
+  var MockFetch = null;
+
+  beforeAll(() => {
+    MockFetch = require('mock-fetch-api');
+
+    var when = {
+      url: 'http://mydomain.com/home',
+      response: {
+        status: 200,
+        statusText: 'Success!',
+      }
+    };
+
+    var when2 = {
+      url: 'http://otherdomain.org',
+      method: 'POST',
+      headers: {
+        'X-AuthToken': 1234,
+        BANANA: 8757,
+        otherwiseRespondWith: {
+          status: 401,
+          statusText: 'Not Authorized'
+        }
+      },
+      response: {
+        status: 200,
+        statusText: 'Great!'
+      }
+    };
+
+    var when3 = {
+      url: 'http://anydomain.com.br',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9',
+        otherwiseRespondWith: {
+          status: 404,
+          statusText: 'Not Found'
+        }
+      },
+      response: {
+        status: 200,
+        statusText: 'YEAH!'
+      }
+    };
+
+    MockFetch.whenAll([when, when2, when3]);
+  });
+
+
+  pit("Should mydomain.com return a status 200", () => {
+    return fetch('http://mydomain.com/home').then((response) => {
+      expect(response.status).toBe(200);
+    });
+  });
+
+
+  pit("Should mydomain.com return a status 200 when connection is failed", () => {
+    MockFetch.failNextCall();
+
+    return fetch('http://mydomain.com/home').then((response) => {
+      expect(false).toBe(true);
+    }, (error) => {
+      expect(true).toBe(true);
+    });
+  });
+
+
+  pit("Should otherdomain.org return a status 200 when login authorized", () => {
+    var headers = new Headers({
+      'X-AuthToken': 1234,
+      BANANA: 8757
+    });
+
+    return fetch('http://otherdomain.org', { method: 'POST', headers: headers}).then((response) => {
+      expect(response.status).toBe(200);
+    });
+  });
+
+
+  pit("Should otherdomain.org return a status 401 when login not authorized", () => {
+    var headers = new Headers({
+      'X-AuthToken': 1234,
+      BANANA: 8758 // Password wrong
+    });
+
+    return fetch('http://otherdomain.org', { method: 'POST', headers: headers}).then((response) => {
+      expect(response.status).toBe(401);
+    });
+  });
+
+
+  pit("Should anydomain.com.br return a status 200 when request is json", () => {
+    var headers = new Headers({
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9'
+    });
+
+    return fetch('http://anydomain.com.br', {headers: headers}).then((response) => {
+      expect(response.status).toBe(200);
+    });
+  });
 
 });
