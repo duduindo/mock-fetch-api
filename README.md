@@ -176,7 +176,7 @@ pit("rejects the promise when simulating a failed network connection", () => {
 });
 ```
 
-### Example using whenAll() from beforeAll()
+### Example using whenAll() in beforeAll()
 
 ```js
 describe('MockFetch test using function whenAll()', () =>  {
