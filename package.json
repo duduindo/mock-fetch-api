@@ -1,6 +1,6 @@
 {
   "name": "mock-fetch-api",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "description": "Mock http requests and responses using fetch API (or isomorphic-fetch). Straight forward functions makes it simple to create customizable and legible unit tests.",
   "main": "mock-fetch-api.js",
   "repository": {
